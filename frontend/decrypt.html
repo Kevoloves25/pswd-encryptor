@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decrypt Code | CodeVault</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-lock"></i>
+                    <span>CodeVault</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="encrypt.html">Encrypt</a></li>
+                    <li><a href="decrypt.html" class="active">Decrypt</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>Decrypt Your Code</h1>
+                <p>Restore your encrypted code using your password</p>
+            </div>
+        </section>
+
+        <section class="decrypt-section">
+            <div class="container">
+                <div class="decrypt-container">
+                    <div class="input-section">
+                        <div class="section-header">
+                            <h2>Encrypted Input</h2>
+                            <div class="file-upload">
+                                <input type="file" id="encrypted-file-upload" accept=".enc,.txt">
+                                <label for="encrypted-file-upload" class="btn btn-outline">
+                                    <i class="fas fa-upload"></i> Upload .enc File
+                                </label>
+                                <span id="encrypted-file-name">No file selected</span>
+                            </div>
+                        </div>
+                        <div class="code-input-container">
+                            <textarea id="encrypted-input" placeholder="Paste your encrypted code here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="password-section">
+                        <h2>Decryption Password</h2>
+                        <div class="password-input-container">
+                            <input type="password" id="decrypt-password" placeholder="Enter the password used for encryption">
+                        </div>
+                        <div class="warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>You must use the exact same password that was used to encrypt this code.</span>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <button id="decrypt-btn" class="btn btn-primary btn-large">
+                            <i class="fas fa-unlock"></i> Decrypt Code
+                        </button>
+                    </div>
+
+                    <div class="output-section hidden">
+                        <div class="section-header">
+                            <h2>Decrypted Output</h2>
+                            <div class="output-actions">
+                                <button id="copy-decrypted" class="btn btn-outline">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                                <button id="download-decrypted" class="btn btn-primary">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="code-input-container">
+                            <div class="code-header">
+                                <div class="language-selector">
+                                    <label for="decrypted-language">Language:</label>
+                                    <select id="decrypted-language">
+                                        <option value="auto">Auto Detect</option>
+                                        <option value="javascript">JavaScript</option>
+                                        <option value="python">Python</option>
+                                        <option value="html">HTML</option>
+                                        <option value="css">CSS</option>
+                                        <option value="java">Java</option>
+                                        <option value="cpp">C++</option>
+                                        <option value="php">PHP</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <pre><code id="decrypted-output"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="logo">
+                        <i class="fas fa-lock"></i>
+                        <span>CodeVault</span>
+                    </div>
+                    <p>Secure your code with military-grade encryption. Simple, fast, and reliable.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="encrypt.html">Encrypt Code</a></li>
+                        <li><a href="decrypt.html">Decrypt Code</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Security</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 CodeVault. All rights reserved.</p>
+                <div class="stats">
+                    <span id="footer-visitors">1,247 visitors</span>
+                    <span id="footer-online">24 online</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="js/crypto-utils.js"></script>
+    <script src="js/decrypt.js"></script>
+</body>
+</html>
