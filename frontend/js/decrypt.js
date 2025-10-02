@@ -1,134 +1,142 @@
-// Encryption page functionality
+// Decryption page functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
-    const codeInput = document.getElementById('code-input');
-    const fileUpload = document.getElementById('file-upload');
-    const fileName = document.getElementById('file-name');
-    const languageSelect = document.getElementById('language');
-    const clearCodeBtn = document.getElementById('clear-code');
-    const encryptPassword = document.getElementById('encrypt-password');
-    const generatePasswordBtn = document.getElementById('generate-password');
-    const encryptBtn = document.getElementById('encrypt-btn');
-    const encryptedOutput = document.getElementById('encrypted-output');
-    const copyEncryptedBtn = document.getElementById('copy-encrypted');
-    const downloadEncryptedBtn = document.getElementById('download-encrypted');
+    const encryptedInput = document.getElementById('encrypted-input');
+    const encryptedFileUpload = document.getElementById('encrypted-file-upload');
+    const encryptedFileName = document.getElementById('encrypted-file-name');
+    const decryptPassword = document.getElementById('decrypt-password');
+    const decryptBtn = document.getElementById('decrypt-btn');
+    const decryptedOutput = document.getElementById('decrypted-output');
+    const copyDecryptedBtn = document.getElementById('copy-decrypted');
+    const downloadDecryptedBtn = document.getElementById('download-decrypted');
+    const decryptedLanguage = document.getElementById('decrypted-language');
     const outputSection = document.querySelector('.output-section');
 
-    // File upload handling
-    fileUpload.addEventListener('change', function(e) {
+    // File upload handling for encrypted files
+    encryptedFileUpload.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
-            fileName.textContent = file.name;
+            encryptedFileName.textContent = file.name;
             
             // Check file size (10MB limit)
             if (file.size > 10 * 1024 * 1024) {
                 alert('File size must be less than 10MB');
-                fileUpload.value = '';
-                fileName.textContent = 'No file selected';
+                encryptedFileUpload.value = '';
+                encryptedFileName.textContent = 'No file selected';
                 return;
             }
             
             const reader = new FileReader();
             reader.onload = function(e) {
-                codeInput.value = e.target.result;
-                
-                // Auto-detect language from file extension
-                const extension = file.name.split('.').pop().toLowerCase();
-                const languageMap = {
-                    'js': 'javascript', 'jsx': 'javascript', 'ts': 'typescript',
-                    'py': 'python', 'html': 'html', 'css': 'css',
-                    'java': 'java', 'cpp': 'cpp', 'c': 'c',
-                    'php': 'php', 'rb': 'ruby', 'go': 'go',
-                    'rs': 'rust', 'swift': 'swift', 'kt': 'kotlin'
-                };
-                
-                if (languageMap[extension]) {
-                    languageSelect.value = languageMap[extension];
-                }
+                encryptedInput.value = e.target.result;
             };
             reader.readAsText(file);
         }
     });
 
-    // Clear code
-    clearCodeBtn.addEventListener('click', function() {
-        codeInput.value = '';
-        fileUpload.value = '';
-        fileName.textContent = 'No file selected';
-    });
-
-    // Generate strong password
-    generatePasswordBtn.addEventListener('click', function() {
-        const strongPassword = CryptoUtils.generateStrongPassword();
-        encryptPassword.value = strongPassword;
-        updatePasswordStrength(strongPassword);
-    });
-
-    // Password strength indicator
-    encryptPassword.addEventListener('input', function() {
-        updatePasswordStrength(this.value);
-    });
-
-    // Encryption
-    encryptBtn.addEventListener('click', async function() {
-        const code = codeInput.value.trim();
-        const password = encryptPassword.value;
+    // Decryption
+    decryptBtn.addEventListener('click', async function() {
+        const encryptedData = encryptedInput.value.trim();
+        const password = decryptPassword.value;
         
-        if (!code) {
-            alert('Please enter or upload code to encrypt');
+        if (!encryptedData) {
+            alert('Please enter or upload encrypted code');
             return;
         }
         
         if (!password) {
-            alert('Please enter an encryption password');
-            return;
-        }
-        
-        if (password.length < 8) {
-            alert('Password must be at least 8 characters long');
+            alert('Please enter the decryption password');
             return;
         }
         
         try {
-            encryptBtn.disabled = true;
-            encryptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Encrypting...';
+            decryptBtn.disabled = true;
+            decryptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Decrypting...';
             
-            // Encrypt the code
-            const encrypted = await CryptoUtils.encrypt(code, password);
-            encryptedOutput.textContent = encrypted;
+            // Decrypt the code
+            const decrypted = await CryptoUtils.decrypt(encryptedData, password);
+            
+            if (!decrypted) {
+                throw new Error('Decryption failed. Please check your password.');
+            }
+            
+            decryptedOutput.textContent = decrypted;
+            
+            // Apply syntax highlighting
+            if (window.hljs) {
+                const language = decryptedLanguage.value === 'auto' ? 
+                    detectLanguage(decrypted) : decryptedLanguage.value;
+                const highlighted = window.hljs.highlight(decrypted, { 
+                    language: language || 'plaintext' 
+                }).value;
+                decryptedOutput.innerHTML = highlighted;
+            }
             
             // Show output section
             outputSection.classList.remove('hidden');
             
             // Update stats
-            await fetch('/api/stats/encrypted', { method: 'POST' });
+            await fetch('/api/stats/decrypted', { method: 'POST' });
             
-            showNotification('Code encrypted successfully!');
+            showNotification('Code decrypted successfully!');
             
         } catch (error) {
-            console.error('Encryption error:', error);
-            alert('Encryption failed: ' + error.message);
+            console.error('Decryption error:', error);
+            alert('Decryption failed: ' + error.message);
         } finally {
-            encryptBtn.disabled = false;
-            encryptBtn.innerHTML = '<i class="fas fa-lock"></i> Encrypt Code';
+            decryptBtn.disabled = false;
+            decryptBtn.innerHTML = '<i class="fas fa-unlock"></i> Decrypt Code';
         }
     });
 
-    // Copy encrypted code
-    copyEncryptedBtn.addEventListener('click', function() {
-        const encryptedText = encryptedOutput.textContent;
-        if (encryptedText) {
-            copyToClipboard(encryptedText);
+    // Copy decrypted code
+    copyDecryptedBtn.addEventListener('click', function() {
+        const decryptedText = decryptedOutput.textContent;
+        if (decryptedText) {
+            copyToClipboard(decryptedText);
         }
     });
 
-    // Download encrypted file
-    downloadEncryptedBtn.addEventListener('click', function() {
-        const encryptedText = encryptedOutput.textContent;
-        if (encryptedText) {
-            const fileName = `encrypted-code-${Date.now()}.enc`;
-            downloadFile(encryptedText, fileName, 'text/plain');
-            showNotification('Encrypted file downloaded!');
+    // Download decrypted file
+    downloadDecryptedBtn.addEventListener('click', function() {
+        const decryptedText = decryptedOutput.textContent;
+        if (decryptedText) {
+            const fileName = `decrypted-code-${Date.now()}.txt`;
+            downloadFile(decryptedText, fileName, 'text/plain');
+            showNotification('Decrypted file downloaded!');
+        }
+    });
+
+    // Language detection for syntax highlighting
+    function detectLanguage(code) {
+        if (code.includes('function') && (code.includes('{') || code.includes('=>'))) {
+            return 'javascript';
+        } else if (code.includes('def ') && code.includes(':')) {
+            return 'python';
+        } else if (code.includes('<?php') || code.includes('$')) {
+            return 'php';
+        } else if (code.includes('<html') || code.includes('<div')) {
+            return 'html';
+        } else if (code.includes('public class') || code.includes('import java')) {
+            return 'java';
+        } else if (code.includes('#include') || code.includes('std::')) {
+            return 'cpp';
+        }
+        return 'plaintext';
+    }
+
+    // Update syntax highlighting when language changes
+    decryptedLanguage.addEventListener('change', function() {
+        if (outputSection.classList.contains('hidden')) return;
+        
+        const decryptedText = decryptedOutput.textContent;
+        if (decryptedText && window.hljs) {
+            const language = this.value === 'auto' ? 
+                detectLanguage(decryptedText) : this.value;
+            const highlighted = window.hljs.highlight(decryptedText, { 
+                language: language || 'plaintext' 
+            }).value;
+            decryptedOutput.innerHTML = highlighted;
         }
     });
 });
