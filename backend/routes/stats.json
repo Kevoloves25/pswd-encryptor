@@ -1,0 +1,61 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const router = express.Router();
+
+const statsFile = path.join(__dirname, '../data/stats.json');
+const visitorsFile = path.join(__dirname, '../data/visitors.json');
+
+const loadStats = () => {
+  try {
+    return JSON.parse(fs.readFileSync(statsFile, 'utf8'));
+  } catch (error) {
+    return {
+      filesEncrypted: 0,
+      filesDecrypted: 0,
+      totalOperations: 0,
+      popularLanguages: []
+    };
+  }
+};
+
+const saveStats = (data) => {
+  fs.writeFileSync(statsFile, JSON.stringify(data, null, 2));
+};
+
+// Get all statistics
+router.get('/', (req, res) => {
+  const stats = loadStats();
+  const visitors = JSON.parse(fs.readFileSync(visitorsFile, 'utf8'));
+  
+  // Calculate online visitors (simplified)
+  const onlineVisitors = Math.floor(Math.random() * 50) + 1; // Mock data for demo
+  
+  res.json({
+    totalVisitors: visitors.totalVisitors,
+    onlineVisitors: onlineVisitors,
+    filesEncrypted: stats.filesEncrypted,
+    filesDecrypted: stats.filesDecrypted,
+    totalOperations: stats.totalOperations
+  });
+});
+
+// Update stats when file is encrypted
+router.post('/encrypted', (req, res) => {
+  const stats = loadStats();
+  stats.filesEncrypted++;
+  stats.totalOperations++;
+  saveStats(stats);
+  res.json({ success: true });
+});
+
+// Update stats when file is decrypted
+router.post('/decrypted', (req, res) => {
+  const stats = loadStats();
+  stats.filesDecrypted++;
+  stats.totalOperations++;
+  saveStats(stats);
+  res.json({ success: true });
+});
+
+module.exports = router;
