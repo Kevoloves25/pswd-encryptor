@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encrypt Code | CodeVault</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-lock"></i>
+                    <span>CodeVault</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="encrypt.html" class="active">Encrypt</a></li>
+                    <li><a href="decrypt.html">Decrypt</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>Encrypt Your Code</h1>
+                <p>Protect your source code with military-grade AES-256 encryption</p>
+            </div>
+        </section>
+
+        <section class="encrypt-section">
+            <div class="container">
+                <div class="encrypt-container">
+                    <div class="input-section">
+                        <div class="section-header">
+                            <h2>Input Your Code</h2>
+                            <div class="file-upload">
+                                <input type="file" id="file-upload" accept=".js,.py,.html,.css,.jsx,.ts,.java,.cpp,.c,.php,.rb,.go,.rs,.swift,.kt">
+                                <label for="file-upload" class="btn btn-outline">
+                                    <i class="fas fa-upload"></i> Upload File
+                                </label>
+                                <span id="file-name">No file selected</span>
+                            </div>
+                        </div>
+                        <div class="code-input-container">
+                            <div class="code-header">
+                                <div class="language-selector">
+                                    <label for="language">Language:</label>
+                                    <select id="language">
+                                        <option value="auto">Auto Detect</option>
+                                        <option value="javascript">JavaScript</option>
+                                        <option value="python">Python</option>
+                                        <option value="html">HTML</option>
+                                        <option value="css">CSS</option>
+                                        <option value="java">Java</option>
+                                        <option value="cpp">C++</option>
+                                        <option value="php">PHP</option>
+                                    </select>
+                                </div>
+                                <button id="clear-code" class="btn-text">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+                            <textarea id="code-input" placeholder="Paste your code here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="password-section">
+                        <h2>Encryption Password</h2>
+                        <div class="password-input-container">
+                            <input type="password" id="encrypt-password" placeholder="Enter a strong password">
+                            <button id="generate-password" class="btn btn-outline">
+                                <i class="fas fa-key"></i> Generate
+                            </button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="strength-fill"></div>
+                            </div>
+                            <span id="strength-text">Password strength</span>
+                        </div>
+                        <div class="warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Warning: If you lose this password, you will permanently lose access to your encrypted code.</span>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <button id="encrypt-btn" class="btn btn-primary btn-large">
+                            <i class="fas fa-lock"></i> Encrypt Code
+                        </button>
+                    </div>
+
+                    <div class="output-section hidden">
+                        <div class="section-header">
+                            <h2>Encrypted Output</h2>
+                            <div class="output-actions">
+                                <button id="copy-encrypted" class="btn btn-outline">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                                <button id="download-encrypted" class="btn btn-primary">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="output-container">
+                            <pre><code id="encrypted-output"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="logo">
+                        <i class="fas fa-lock"></i>
+                        <span>CodeVault</span>
+                    </div>
+                    <p>Secure your code with military-grade encryption. Simple, fast, and reliable.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="encrypt.html">Encrypt Code</a></li>
+                        <li><a href="decrypt.html">Decrypt Code</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Security</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 CodeVault. All rights reserved.</p>
+                <div class="stats">
+                    <span id="footer-visitors">1,247 visitors</span>
+                    <span id="footer-online">24 online</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="js/crypto-utils.js"></script>
+    <script src="js/encrypt.js"></script>
+</body>
+</html>
