@@ -1,0 +1,65 @@
+const fs = require('fs');
+const path = require('path');
+const visitorsFile = path.join(__dirname, '../data/visitors.json');
+
+// Track online visitors (simple in-memory store for MVP)
+const onlineVisitors = new Set();
+
+const loadVisitors = () => {
+  try {
+    return JSON.parse(fs.readFileSync(visitorsFile, 'utf8'));
+  } catch (error) {
+    return {
+      totalVisitors: 0,
+      onlineVisitors: 0,
+      dailyVisitors: {},
+      uniqueVisitors: [],
+      lastReset: new Date().toISOString().split('T')[0]
+    };
+  }
+};
+
+const saveVisitors = (data) => {
+  fs.writeFileSync(visitorsFile, JSON.stringify(data, null, 2));
+};
+
+const visitorTracker = (req, res, next) => {
+  const visitors = loadVisitors();
+  const visitorId = req.ip + req.headers['user-agent'];
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Reset daily stats if new day
+  if (visitors.lastReset !== today) {
+    visitors.dailyVisitors = {};
+    visitors.lastReset = today;
+  }
+  
+  // Track unique visitors
+  if (!visitors.uniqueVisitors.includes(visitorId)) {
+    visitors.uniqueVisitors.push(visitorId);
+    visitors.totalVisitors = visitors.uniqueVisitors.length;
+  }
+  
+  // Track daily visitors
+  if (!visitors.dailyVisitors[today]) {
+    visitors.dailyVisitors[today] = [];
+  }
+  
+  if (!visitors.dailyVisitors[today].includes(visitorId)) {
+    visitors.dailyVisitors[today].push(visitorId);
+  }
+  
+  saveVisitors(visitors);
+  
+  // Add to online visitors for this request
+  onlineVisitors.add(visitorId);
+  
+  // Clean up online visitors periodically (in a real app, use WebSockets)
+  setTimeout(() => {
+    onlineVisitors.delete(visitorId);
+  }, 300000); // 5 minutes
+  
+  next();
+};
+
+module.exports = visitorTracker;
