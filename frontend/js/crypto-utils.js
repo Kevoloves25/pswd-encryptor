@@ -1,29 +1,38 @@
-// Crypto utilities for client-side encryption/decryption
-// Note: In a production environment, consider using Web Crypto API
-
+// Frontend encryption utilities using Web Crypto API
 class CryptoUtils {
     static async encrypt(text, password) {
         try {
-            // Generate salt and IV
-            const salt = CryptoJS.lib.WordArray.random(128/8);
-            const iv = CryptoJS.lib.WordArray.random(128/8);
+            // Generate a random salt
+            const salt = crypto.getRandomValues(new Uint8Array(16));
             
             // Derive key from password
-            const key = CryptoJS.PBKDF2(password, salt, {
-                keySize: 256/32,
-                iterations: 1000
-            });
+            const keyMaterial = await this.getKeyMaterial(password);
+            const key = await this.deriveKey(keyMaterial, salt, ['encrypt']);
+            
+            // Generate random IV
+            const iv = crypto.getRandomValues(new Uint8Array(12));
             
             // Encrypt the text
-            const encrypted = CryptoJS.AES.encrypt(text, key, {
-                iv: iv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            });
+            const encoder = new TextEncoder();
+            const encodedText = encoder.encode(text);
+            
+            const encrypted = await crypto.subtle.encrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                encodedText
+            );
             
             // Combine salt + iv + encrypted data
-            const combined = salt.toString() + iv.toString() + encrypted.toString();
-            return combined;
+            const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+            combined.set(salt, 0);
+            combined.set(iv, salt.length);
+            combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+            
+            // Convert to base64 for storage
+            return btoa(String.fromCharCode(...combined));
             
         } catch (error) {
             throw new Error('Encryption failed: ' + error.message);
@@ -32,49 +41,83 @@ class CryptoUtils {
 
     static async decrypt(encryptedData, password) {
         try {
-            // Extract components (salt: 32 chars, iv: 32 chars, rest: encrypted data)
-            const salt = CryptoJS.enc.Hex.parse(encryptedData.substring(0, 32));
-            const iv = CryptoJS.enc.Hex.parse(encryptedData.substring(32, 64));
-            const encrypted = encryptedData.substring(64);
+            // Convert from base64
+            const binaryString = atob(encryptedData);
+            const combined = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                combined[i] = binaryString.charCodeAt(i);
+            }
+            
+            // Extract salt (first 16 bytes), iv (next 12 bytes), and encrypted data
+            const salt = combined.slice(0, 16);
+            const iv = combined.slice(16, 28);
+            const encrypted = combined.slice(28);
             
             // Derive key from password
-            const key = CryptoJS.PBKDF2(password, salt, {
-                keySize: 256/32,
-                iterations: 1000
-            });
+            const keyMaterial = await this.getKeyMaterial(password);
+            const key = await this.deriveKey(keyMaterial, salt, ['decrypt']);
             
             // Decrypt the data
-            const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-                iv: iv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            });
+            const decrypted = await crypto.subtle.decrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                encrypted
+            );
             
-            return decrypted.toString(CryptoJS.enc.Utf8);
+            // Convert back to text
+            const decoder = new TextDecoder();
+            return decoder.decode(decrypted);
             
         } catch (error) {
-            throw new Error('Decryption failed. Please check your password.');
+            throw new Error('Decryption failed: ' + error.message);
         }
     }
 
+    static async getKeyMaterial(password) {
+        const encoder = new TextEncoder();
+        return crypto.subtle.importKey(
+            'raw',
+            encoder.encode(password),
+            'PBKDF2',
+            false,
+            ['deriveBits', 'deriveKey']
+        );
+    }
+
+    static async deriveKey(keyMaterial, salt, keyUsages) {
+        return crypto.subtle.deriveKey(
+            {
+                name: 'PBKDF2',
+                salt: salt,
+                iterations: 100000,
+                hash: 'SHA-256'
+            },
+            keyMaterial,
+            {
+                name: 'AES-GCM',
+                length: 256
+            },
+            false,
+            keyUsages
+        );
+    }
+
     static generateStrongPassword(length = 16) {
-        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-        const numbers = '0123456789';
-        const symbols = '!@#$%^&*';
-        const allChars = uppercase + lowercase + numbers + symbols;
-        
-        let password = '';
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let password = "";
         
         // Ensure at least one of each type
-        password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
-        password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
-        password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-        password += symbols.charAt(Math.floor(Math.random() * symbols.length));
+        password += "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(Math.floor(Math.random() * 26));
+        password += "abcdefghijklmnopqrstuvwxyz".charAt(Math.floor(Math.random() * 26));
+        password += "0123456789".charAt(Math.floor(Math.random() * 10));
+        password += "!@#$%^&*".charAt(Math.floor(Math.random() * 8));
         
         // Fill the rest
         for (let i = password.length; i < length; i++) {
-            password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
         }
         
         // Shuffle the password
@@ -86,27 +129,55 @@ class CryptoUtils {
         
         if (password.length >= 8) strength++;
         if (password.length >= 12) strength++;
-        if (/[a-z]/.test(password)) strength++;
         if (/[A-Z]/.test(password)) strength++;
+        if (/[a-z]/.test(password)) strength++;
         if (/[0-9]/.test(password)) strength++;
         if (/[^A-Za-z0-9]/.test(password)) strength++;
         
-        return Math.min(strength, 5); // Max strength of 5
+        return {
+            score: strength,
+            maxScore: 6,
+            text: this.getStrengthText(strength),
+            color: this.getStrengthColor(strength),
+            width: this.getStrengthWidth(strength)
+        };
+    }
+
+    static getStrengthText(strength) {
+        const texts = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong', 'Excellent'];
+        return texts[Math.min(strength, 6)];
+    }
+
+    static getStrengthColor(strength) {
+        const colors = ['#dc3545', '#dc3545', '#ffc107', '#ffc107', '#28a745', '#28a745', '#28a745'];
+        return colors[Math.min(strength, 6)];
+    }
+
+    static getStrengthWidth(strength) {
+        const widths = ['20%', '20%', '40%', '60%', '80%', '95%', '100%'];
+        return widths[Math.min(strength, 6)];
     }
 }
 
-// Password strength indicator
-function updatePasswordStrength(password) {
-    const strength = CryptoUtils.checkPasswordStrength(password);
-    const strengthFill = document.getElementById('strength-fill');
-    const strengthText = document.getElementById('strength-text');
+// Fallback for browsers without Web Crypto API
+if (typeof crypto === 'undefined' || !crypto.subtle) {
+    console.warn('Web Crypto API not available, using fallback');
     
-    if (!strengthFill || !strengthText) return;
+    // Simple XOR fallback (NOT SECURE - for demo only)
+    CryptoUtils.encrypt = async function(text, password) {
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+            result += String.fromCharCode(text.charCodeAt(i) ^ password.charCodeAt(i % password.length));
+        }
+        return btoa(result);
+    };
     
-    const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    const strengthColors = ['#dc3545', '#ff6b6b', '#ffc107', '#51cf66', '#2b8a3e', '#1c7ed6'];
-    
-    strengthFill.style.width = `${(strength / 5) * 100}%`;
-    strengthFill.style.backgroundColor = strengthColors[strength];
-    strengthText.textContent = strengthLabels[strength];
+    CryptoUtils.decrypt = async function(encryptedData, password) {
+        const text = atob(encryptedData);
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+            result += String.fromCharCode(text.charCodeAt(i) ^ password.charCodeAt(i % password.length));
+        }
+        return result;
+    };
 }
