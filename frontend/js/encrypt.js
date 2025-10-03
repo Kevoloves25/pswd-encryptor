@@ -1,50 +1,49 @@
-// Decrypt code - Updated version
-decryptBtn.addEventListener('click', async function() {
-    const encryptedData = encryptedInput.value.trim();
-    const password = decryptPassword.value;
+// Encrypt code - Updated version
+encryptBtn.addEventListener('click', async function() {
+    const code = codeInput.value.trim();
+    const password = encryptPassword.value;
     
-    if (!encryptedData) {
-        showNotification('Please enter or upload encrypted code', 'warning');
+    if (!code) {
+        showNotification('Please enter or upload code to encrypt', 'warning');
         return;
     }
     
     if (!password) {
-        showNotification('Please enter the decryption password', 'warning');
+        showNotification('Please enter an encryption password', 'warning');
+        return;
+    }
+    
+    if (password.length < 8) {
+        showNotification('Password should be at least 8 characters long', 'warning');
         return;
     }
     
     try {
-        decryptBtn.disabled = true;
-        decryptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Decrypting...';
+        encryptBtn.disabled = true;
+        encryptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Encrypting...';
         
-        // Use frontend decryption (more secure - password never leaves browser)
-        const decryptedCode = await CryptoUtils.decrypt(encryptedData, password);
+        // Use frontend encryption (more secure - password never leaves browser)
+        const encryptedData = await CryptoUtils.encrypt(code, password);
         
-        decryptedOutput.textContent = decryptedCode;
-        
-        // Apply syntax highlighting
-        if (typeof hljs !== 'undefined') {
-            hljs.highlightElement(decryptedOutput);
-        }
-        
+        encryptedOutput.textContent = encryptedData;
         outputSection.classList.remove('hidden');
         
         // Update stats on backend
         try {
-            await fetch('/api/stats/decrypted', { method: 'POST' });
+            await fetch('/api/stats/encrypted', { method: 'POST' });
         } catch (statsError) {
             console.warn('Could not update stats:', statsError);
         }
         
-        showNotification('Code decrypted successfully!', 'success');
+        showNotification('Code encrypted successfully!', 'success');
         
         // Scroll to output
         outputSection.scrollIntoView({ behavior: 'smooth' });
         
     } catch (error) {
-        showNotification('Error decrypting code: ' + error.message, 'error');
+        showNotification('Error encrypting code: ' + error.message, 'error');
     } finally {
-        decryptBtn.disabled = false;
-        decryptBtn.innerHTML = '<i class="fas fa-unlock"></i> Decrypt Code';
+        encryptBtn.disabled = false;
+        encryptBtn.innerHTML = '<i class="fas fa-lock"></i> Encrypt Code';
     }
 });
